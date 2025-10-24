@@ -872,6 +872,38 @@ export default function Home() {
                 </div>
               </div>
             </div>
+
+            {/* About */}
+            <div className="card bg-base-100 shadow-xl">
+              <div className="card-body">
+                <h3 className="card-title">About</h3>
+                <div className="space-y-2 text-sm">
+                  <p>
+                    <span className="font-semibold">Version:</span> 0.1.0
+                  </p>
+                  <p>
+                    <span className="font-semibold">Repository:</span>{" "}
+                    <a
+                      href="https://github.com/sdraeger/nsg-gui"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="link link-primary"
+                    >
+                      github.com/sdraeger/nsg-gui
+                    </a>
+                  </p>
+                  <p>
+                    <span className="font-semibold">Contact:</span>{" "}
+                    <a
+                      href="mailto:sdraeger@salk.edu"
+                      className="link link-primary"
+                    >
+                      sdraeger@salk.edu
+                    </a>
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
         )}
       </div>
