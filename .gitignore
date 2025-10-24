@@ -1,0 +1,16 @@
+/target
+/src-tauri/target
+
+# Frontend
+/frontend/node_modules
+/frontend/.next
+/frontend/out
+
+# Tauri icons (generated)
+/src-tauri/icons/
+
+# Credentials - never commit real credentials!
+credentials.json
+.nsg/
+.claude/
+.DS_Store

@@ -1,0 +1,70 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "NSG GUI",
+  "version": "0.1.0",
+  "identifier": "edu.salk.nsg-gui",
+  "build": {
+    "beforeDevCommand": "cd ../frontend && npm run dev",
+    "devUrl": "http://localhost:3000",
+    "beforeBuildCommand": "cd ../frontend && npm run build",
+    "frontendDist": "../frontend/out"
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "NSG GUI - Neuroscience Gateway",
+        "width": 1600,
+        "height": 1300,
+        "resizable": true,
+        "fullscreen": false
+      }
+    ],
+    "security": {
+      "csp": null,
+      "capabilities": [
+        {
+          "identifier": "main-capability",
+          "windows": ["main"],
+          "permissions": [
+            "core:default",
+            "dialog:default",
+            "updater:default",
+            "updater:allow-check",
+            "updater:allow-download-and-install",
+            "process:default",
+            "process:allow-restart"
+          ]
+        }
+      ]
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "createUpdaterArtifacts": true,
+    "icon": [
+      "icons/icon.png"
+    ],
+    "publisher": "Salk Institute",
+    "copyright": "Copyright (c) 2025 Salk Institute for Biological Studies",
+    "category": "Science",
+    "shortDescription": "Desktop GUI for the Neuroscience Gateway (NSG)",
+    "longDescription": "A cross-platform desktop application for submitting computational neuroscience jobs to the Neuroscience Gateway using a modern, user-friendly interface.",
+    "macOS": {
+      "minimumSystemVersion": "10.13"
+    },
+    "windows": {
+      "wix": {
+        "language": "en-US"
+      }
+    }
+  },
+  "plugins": {
+    "updater": {
+      "endpoints": [
+        "https://github.com/{{owner}}/{{repo}}/releases/latest/download/latest.json"
+      ],
+      "pubkey": ""
+    }
+  }
+}
