@@ -47,7 +47,7 @@
     ],
     "publisher": "Salk Institute",
     "copyright": "Copyright (c) 2025 Salk Institute for Biological Studies",
-    "category": "Science",
+    "category": "Education",
     "shortDescription": "Desktop GUI for the Neuroscience Gateway (NSG)",
     "longDescription": "A cross-platform desktop application for submitting computational neuroscience jobs to the Neuroscience Gateway using a modern, user-friendly interface.",
     "macOS": {
