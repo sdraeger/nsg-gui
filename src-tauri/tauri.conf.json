@@ -43,7 +43,9 @@
     "targets": "all",
     "createUpdaterArtifacts": true,
     "icon": [
-      "icons/icon.png"
+      "icons/icon.png",
+      "icons/icon.ico",
+      "icons/icon.icns"
     ],
     "publisher": "Salk Institute",
     "copyright": "Copyright (c) 2025 Salk Institute for Biological Studies",
