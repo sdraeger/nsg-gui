@@ -6,8 +6,9 @@
 /frontend/.next
 /frontend/out
 
-# Tauri icons (generated)
-/src-tauri/icons/
+# Tauri icons (generated) - but keep icon.png
+/src-tauri/icons/*
+!/src-tauri/icons/icon.png
 
 # Credentials - never commit real credentials!
 credentials.json
