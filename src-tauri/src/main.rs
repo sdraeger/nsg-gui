@@ -221,6 +221,7 @@ async fn download_results(
     job_url: String,
     output_dir: String,
     state: State<'_, AppState>,
+    window: WebviewWindow,
 ) -> Result<String, String> {
     let creds = state
         .credentials
@@ -242,11 +243,20 @@ async fn download_results(
         std::fs::create_dir_all(&temp_dir)
             .map_err(|e| format!("Failed to create temp dir: {}", e))?;
 
-        // Download files to temp directory
+        // Download files to temp directory with progress callback
         let client =
             NsgClient::new(creds).map_err(|e| format!("Failed to create client: {}", e))?;
+
+        let window_clone = window.clone();
         let files = client
-            .download_results(&job_url, &temp_dir)
+            .download_results(&job_url, &temp_dir, |filename, downloaded, total| {
+                // Emit progress event to frontend
+                let _ = window_clone.emit("download-progress", json!({
+                    "filename": filename,
+                    "downloaded": downloaded,
+                    "total": total,
+                }));
+            })
             .map_err(|e| format!("Failed to download results: {}", e))?;
 
         // Create output zip file
@@ -293,6 +303,9 @@ async fn download_results(
         // Clean up temp directory
         std::fs::remove_dir_all(&temp_dir)
             .map_err(|e| format!("Failed to clean up temp dir: {}", e))?;
+
+        // Emit completion event
+        let _ = window.emit("download-complete", json!({}));
 
         Ok(zip_path.to_string_lossy().to_string())
     })

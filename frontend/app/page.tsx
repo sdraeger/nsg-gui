@@ -40,6 +40,13 @@ export default function Home() {
   const [installing, setInstalling] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState(0);
 
+  // Job download progress state
+  const [jobDownloadProgress, setJobDownloadProgress] = useState<{
+    filename: string;
+    downloaded: number;
+    total: number;
+  } | null>(null);
+
   // Showcase mode state
   const [isShowcaseMode, setIsShowcaseMode] = useState(false);
 
@@ -125,6 +132,39 @@ export default function Home() {
     mediaQuery.addEventListener("change", handleChange);
     return () => mediaQuery.removeEventListener("change", handleChange);
   }, [theme]);
+
+  // Listen for download progress events
+  useEffect(() => {
+    const setupDownloadListeners = async () => {
+      const { listen } = await import("@tauri-apps/api/event");
+
+      const unlistenProgress = await listen<{
+        filename: string;
+        downloaded: number;
+        total: number;
+      }>("download-progress", (event) => {
+        setJobDownloadProgress(event.payload);
+      });
+
+      const unlistenComplete = await listen("download-complete", () => {
+        setJobDownloadProgress(null);
+      });
+
+      return () => {
+        unlistenProgress();
+        unlistenComplete();
+      };
+    };
+
+    let cleanup: (() => void) | undefined;
+    setupDownloadListeners().then((fn) => {
+      cleanup = fn;
+    });
+
+    return () => {
+      if (cleanup) cleanup();
+    };
+  }, []);
 
   // Apply theme to document
   const applyTheme = (themeValue: "light" | "dark" | "system") => {
@@ -930,6 +970,40 @@ export default function Home() {
           </div>
         </div>
       )}
+
+      {/* Download Progress */}
+      {jobDownloadProgress && (
+        <div className="toast toast-bottom toast-end">
+          <div className="alert alert-info">
+            <div className="flex flex-col gap-2 w-64">
+              <div className="flex justify-between items-center">
+                <span className="font-semibold">Downloading</span>
+                <span className="text-xs">
+                  {((jobDownloadProgress.downloaded / jobDownloadProgress.total) * 100).toFixed(0)}%
+                </span>
+              </div>
+              <div className="text-sm truncate">{jobDownloadProgress.filename}</div>
+              <progress
+                className="progress progress-success"
+                value={jobDownloadProgress.downloaded}
+                max={jobDownloadProgress.total}
+              ></progress>
+              <div className="text-xs text-center">
+                {formatBytes(jobDownloadProgress.downloaded)} / {formatBytes(jobDownloadProgress.total)}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
+}
+
+// Helper function to format bytes into human-readable format
+function formatBytes(bytes: number): string {
+  if (bytes === 0) return "0 B";
+  const k = 1024;
+  const sizes = ["B", "KB", "MB", "GB", "TB"];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return `${(bytes / Math.pow(k, i)).toFixed(2)} ${sizes[i]}`;
 }
