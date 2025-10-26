@@ -377,4 +377,4 @@ MIT License - see LICENSE file for details
 ---
 
 **Author**: Simon Draeger <sdraeger@salk.edu>
-**Version**: 0.1.0
+**Version**: 0.1.1
