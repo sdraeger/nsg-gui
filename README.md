@@ -2,6 +2,36 @@
 
 A modern desktop application for the Neuroscience Gateway, built with **Tauri v2 + Next.js + React**.
 
+## Screenshots
+
+<div align="center">
+
+### Login Screen
+<a href="screenshots/screenshot1.png">
+  <img src="screenshots/screenshot1.png" alt="Login Screen" width="800"/>
+</a>
+<p><i>Clean, centered login form with gradient background and auto-fill from stored credentials</i></p>
+
+### Jobs Dashboard
+<a href="screenshots/screenshot2.png">
+  <img src="screenshots/screenshot2.png" alt="Jobs Dashboard" width="800"/>
+</a>
+<p><i>Card-based layout with job details, search functionality, and download buttons</i></p>
+
+### Upload Form
+<a href="screenshots/screenshot3.png">
+  <img src="screenshots/screenshot3.png" alt="Upload Form" width="800"/>
+</a>
+<p><i>Native file picker with tool selector and status messages</i></p>
+
+### Settings Panel
+<a href="screenshots/screenshot4.png">
+  <img src="screenshots/screenshot4.png" alt="Settings Panel" width="800"/>
+</a>
+<p><i>Theme settings, update checker, and configuration options</i></p>
+
+</div>
+
 ## Features
 
 - **Modern UI** - Responsive interface built with Next.js, daisyUI and Tailwind CSS
@@ -207,31 +237,6 @@ The Rust backend exposes these commands to the frontend:
 | `download_results(job_url, output_dir)` | Download job results              |
 | `get_download_dir()`                    | Get default download directory    |
 | `get_credentials_location()`            | Get credentials file path         |
-
-## UI Screenshots
-
-### Login Screen
-
-- Clean, centered login form with gradient background
-- Auto-fills from stored credentials
-
-### Jobs Dashboard
-
-- Card-based layout with job details
-- Green "Download Results" buttons
-- Refresh button for manual reload
-
-### Upload Form
-
-- File picker with ZIP filter
-- Dropdown tool selector
-- Status messages and instructions
-
-### Settings Panel
-
-- Configuration overview
-- File paths display
-- API endpoint information
 
 ## Troubleshooting
 

@@ -8,7 +8,7 @@ use std::fs::File;
 use std::io::Write;
 use std::path::PathBuf;
 use std::sync::Mutex;
-use tauri::{State, WebviewWindow};
+use tauri::{Emitter, State, WebviewWindow};
 use tauri_plugin_store::StoreExt;
 use zip::write::FileOptions;
 use zip::ZipWriter;
@@ -75,14 +75,22 @@ fn anonymize_job_id(job_id: &str) -> String {
 
 fn anonymize_url(url: &str) -> String {
     if is_showcase_mode() {
-        // Replace actual URL with anonymized version while keeping structure
-        if let Some(job_id_start) = url.rfind('/') {
-            let base = &url[..job_id_start + 1];
-            let job_id = &url[job_id_start + 1..];
-            format!("{}{}", base, anonymize_job_id(job_id))
-        } else {
-            url.to_string()
+        // Replace username and job_id in URL
+        // NSG URLs format: https://nsgr.sdsc.edu:8443/cipresrest/v1/job/USERNAME/JOBID
+        let parts: Vec<&str> = url.split('/').collect();
+        if parts.len() >= 2 {
+            let mut new_parts: Vec<String> = parts.iter().map(|s| s.to_string()).collect();
+            // Replace second-to-last segment (username) with "demo_user"
+            if parts.len() >= 2 {
+                new_parts[parts.len() - 2] = "demo_user".to_string();
+            }
+            // Replace last segment (job ID) with anonymized version
+            if let Some(job_id) = parts.last() {
+                new_parts[parts.len() - 1] = anonymize_job_id(job_id);
+            }
+            return new_parts.join("/");
         }
+        url.to_string()
     } else {
         url.to_string()
     }

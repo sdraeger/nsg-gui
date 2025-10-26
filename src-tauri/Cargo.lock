@@ -2390,9 +2390,9 @@ checksum = "72ef4a56884ca558e5ddb05a1d1e7e1bfd9a68d9ed024c21704cc98872dae1bb"
 
 [[package]]
 name = "nsg-cli"
-version = "0.1.1"
+version = "0.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "711ae407cb7579877f43f9e0fcb2d26d333a3ee61666d8de2ab10e898a0a8364"
+checksum = "3d5812e85686fb9e6865afcc5ef77cde80c35171997eb835f5d0bcf79a08a671"
 dependencies = [
  "anyhow",
  "chrono",
