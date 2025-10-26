@@ -62,6 +62,6 @@ jobs:
             - **Linux**: .deb, .AppImage, or .rpm
 
             See the [CHANGELOG](https://github.com/${{ github.repository }}/blob/main/CHANGELOG.md) for what's new in this release.
-          releaseDraft: true
+          releaseDraft: false
           prerelease: false
           args: ${{ matrix.args }}
