@@ -259,11 +259,14 @@ async fn download_results(
         let files = client
             .download_results(&job_url, &temp_dir, |filename, downloaded, total| {
                 // Emit progress event to frontend
-                let _ = window_clone.emit("download-progress", json!({
-                    "filename": filename,
-                    "downloaded": downloaded,
-                    "total": total,
-                }));
+                let _ = window_clone.emit(
+                    "download-progress",
+                    json!({
+                        "filename": filename,
+                        "downloaded": downloaded,
+                        "total": total,
+                    }),
+                );
             })
             .map_err(|e| format!("Failed to download results: {}", e))?;
 
