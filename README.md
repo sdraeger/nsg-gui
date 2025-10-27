@@ -7,24 +7,28 @@ A modern desktop application for the Neuroscience Gateway, built with **Tauri v2
 <div align="center">
 
 ### Login Screen
+
 <a href="screenshots/screenshot1.png">
   <img src="screenshots/screenshot1.png" alt="Login Screen" width="800"/>
 </a>
 <p><i>Clean, centered login form with gradient background and auto-fill from stored credentials</i></p>
 
 ### Jobs Dashboard
+
 <a href="screenshots/screenshot2.png">
   <img src="screenshots/screenshot2.png" alt="Jobs Dashboard" width="800"/>
 </a>
 <p><i>Card-based layout with job details, search functionality, and download buttons</i></p>
 
 ### Upload Form
+
 <a href="screenshots/screenshot3.png">
   <img src="screenshots/screenshot3.png" alt="Upload Form" width="800"/>
 </a>
 <p><i>Native file picker with tool selector and status messages</i></p>
 
 ### Settings Panel
+
 <a href="screenshots/screenshot4.png">
   <img src="screenshots/screenshot4.png" alt="Settings Panel" width="800"/>
 </a>
@@ -191,7 +195,7 @@ The compiled app will be in `src-tauri/target/release/bundle/`.
 ### Upload Tab
 
 - Click "Select File" to choose a ZIP file
-- Select the tool (NEURON, Python, or R Script)
+- Select the tool (view all [NSG tools](https://nsgr.sdsc.edu:8443/restusers/docs/tools;jsessionid=974EAF39793797A9FE9746B5D09FF2D0) here)
 - Click "Submit Job" to upload and start processing
 - View status messages and newly submitted jobs
 

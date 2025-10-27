@@ -359,7 +359,7 @@ export default function Home() {
         multiple: false,
         filters: [{ name: "ZIP files", extensions: ["zip"] }],
       });
-      if (file && typeof file === 'string') {
+      if (file && typeof file === "string") {
         setSelectedFile(file);
       }
     } catch (err) {
@@ -670,9 +670,49 @@ export default function Home() {
                     className="select select-bordered w-full"
                   >
                     <option value="">Select a tool...</option>
-                    <option value="NEURON">NEURON</option>
-                    <option value="PYTHON">Python</option>
-                    <option value="RSCRIPT">R Script</option>
+                    <option value="AMICA_EXPANSE">AMICA_EXPANSE</option>
+                    <option value="BLUEPYOPT_EXPANSE">BLUEPYOPT_EXPANSE</option>
+                    <option value="BLUEPYOPT_EXPANSE1143">
+                      BLUEPYOPT_EXPANSE1143
+                    </option>
+                    <option value="CORENEURON_EXPANSE">
+                      CORENEURON_EXPANSE
+                    </option>
+                    <option value="EEGLAB_EXPANSE">EEGLAB_EXPANSE</option>
+                    <option value="GPU_PY_EXPANSE">GPU_PY_EXPANSE</option>
+                    <option value="HNN_EXPANSE">HNN_EXPANSE</option>
+                    <option value="HNN_GUI_EXPANSE">HNN_GUI_EXPANSE</option>
+                    <option value="MATLAB_EXPANSE">MATLAB_EXPANSE</option>
+                    <option value="MRTRIX_EXPANSE">MRTRIX_EXPANSE</option>
+                    <option value="NEMAR_EXPANSE">NEMAR_EXPANSE</option>
+                    <option value="NEURON_EXPANSE">NEURON_EXPANSE</option>
+                    <option value="NIC_CONVERTER_EXPANSE">
+                      NIC_CONVERTER_EXPANSE
+                    </option>
+                    <option value="NIC_CORRELATOR_EXPANSE">
+                      NIC_CORRELATOR_EXPANSE
+                    </option>
+                    <option value="NIC_TDA_EXPANSE">NIC_TDA_EXPANSE</option>
+                    <option value="OSBv2_EXPANSE_0_7_3">
+                      OSBv2_EXPANSE_0_7_3
+                    </option>
+                    <option value="PYTORCH_PY_EXPANSE">
+                      PYTORCH_PY_EXPANSE
+                    </option>
+                    <option value="PY_CRI">PY_CRI</option>
+                    <option value="PY_EXPANSE">PY_EXPANSE</option>
+                    <option value="SINGULARITY_PGENESIS24_EXPANSE">
+                      SINGULARITY_PGENESIS24_EXPANSE
+                    </option>
+                    <option value="SPIKEINTERFACE_EXPANSE">
+                      SPIKEINTERFACE_EXPANSE
+                    </option>
+                    <option value="TENSORFLOW_PY_EXPANSE">
+                      TENSORFLOW_PY_EXPANSE
+                    </option>
+                    <option value="TENSORFLOW_PY_NSGOSG">
+                      TENSORFLOW_PY_NSGOSG
+                    </option>
                   </select>
                 </div>
 
@@ -979,17 +1019,25 @@ export default function Home() {
               <div className="flex justify-between items-center">
                 <span className="font-semibold">Downloading</span>
                 <span className="text-xs">
-                  {((jobDownloadProgress.downloaded / jobDownloadProgress.total) * 100).toFixed(0)}%
+                  {(
+                    (jobDownloadProgress.downloaded /
+                      jobDownloadProgress.total) *
+                    100
+                  ).toFixed(0)}
+                  %
                 </span>
               </div>
-              <div className="text-sm truncate">{jobDownloadProgress.filename}</div>
+              <div className="text-sm truncate">
+                {jobDownloadProgress.filename}
+              </div>
               <progress
                 className="progress progress-success"
                 value={jobDownloadProgress.downloaded}
                 max={jobDownloadProgress.total}
               ></progress>
               <div className="text-xs text-center">
-                {formatBytes(jobDownloadProgress.downloaded)} / {formatBytes(jobDownloadProgress.total)}
+                {formatBytes(jobDownloadProgress.downloaded)} /{" "}
+                {formatBytes(jobDownloadProgress.total)}
               </div>
             </div>
           </div>
