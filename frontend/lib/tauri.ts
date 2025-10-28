@@ -9,6 +9,11 @@ export interface Credentials {
 export interface JobSummary {
   job_id: string;
   url: string;
+  tool: string | null;
+  job_stage: string | null;
+  failed: boolean;
+  date_submitted: string | null;
+  date_completed: string | null;
 }
 
 export interface JobDetails {

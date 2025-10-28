@@ -18,6 +18,10 @@ export default function Home() {
   const [jobs, setJobs] = useState<api.JobSummary[]>([]);
   const [jobsLoading, setJobsLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [sortField, setSortField] = useState<
+    "job_id" | "tool" | "date_submitted" | "date_completed" | "job_stage"
+  >("date_submitted");
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
 
   // Upload state
   const [selectedFile, setSelectedFile] = useState<string | null>(null);
@@ -534,7 +538,7 @@ export default function Home() {
                   <div className="input-group">
                     <input
                       type="text"
-                      placeholder="Search jobs by ID or URL..."
+                      placeholder="Search jobs by ID, tool, stage, date, or URL..."
                       className="input input-bordered w-full"
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
@@ -563,16 +567,138 @@ export default function Home() {
               </button>
             </div>
 
+            {/* Sort Controls */}
+            <div className="flex flex-wrap gap-4 mb-4 items-center">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-semibold">Sort by:</span>
+                <select
+                  value={sortField}
+                  onChange={(e) =>
+                    setSortField(
+                      e.target.value as
+                        | "job_id"
+                        | "tool"
+                        | "date_submitted"
+                        | "date_completed"
+                        | "job_stage"
+                    )
+                  }
+                  className="select select-bordered select-sm"
+                >
+                  <option value="date_submitted">Date Submitted</option>
+                  <option value="date_completed">Date Completed</option>
+                  <option value="job_id">Job ID</option>
+                  <option value="tool">Tool</option>
+                  <option value="job_stage">Job Stage</option>
+                </select>
+              </div>
+              <button
+                onClick={() =>
+                  setSortDirection(sortDirection === "asc" ? "desc" : "asc")
+                }
+                className="btn btn-sm btn-ghost gap-2"
+                title={`Sort ${sortDirection === "asc" ? "Descending" : "Ascending"}`}
+              >
+                {sortDirection === "asc" ? "↑" : "↓"}
+                <span className="hidden sm:inline">
+                  {sortDirection === "asc" ? "Ascending" : "Descending"}
+                </span>
+              </button>
+            </div>
+
             {(() => {
               const filteredJobs = jobs.filter((job) => {
                 const query = searchQuery.toLowerCase();
                 return (
                   job.job_id.toLowerCase().includes(query) ||
-                  job.url.toLowerCase().includes(query)
+                  job.url.toLowerCase().includes(query) ||
+                  (job.tool && job.tool.toLowerCase().includes(query)) ||
+                  (job.job_stage && job.job_stage.toLowerCase().includes(query)) ||
+                  (job.date_submitted && job.date_submitted.toLowerCase().includes(query)) ||
+                  (job.date_completed && job.date_completed.toLowerCase().includes(query))
                 );
               });
 
+              // Sort jobs
+              const sortedJobs = [...filteredJobs].sort((a, b) => {
+                let aValue: string | null | undefined;
+                let bValue: string | null | undefined;
+
+                switch (sortField) {
+                  case "job_id":
+                    aValue = a.job_id;
+                    bValue = b.job_id;
+                    break;
+                  case "tool":
+                    aValue = a.tool;
+                    bValue = b.tool;
+                    break;
+                  case "date_submitted":
+                    aValue = a.date_submitted;
+                    bValue = b.date_submitted;
+                    break;
+                  case "date_completed":
+                    aValue = a.date_completed;
+                    bValue = b.date_completed;
+                    break;
+                  case "job_stage":
+                    aValue = a.job_stage;
+                    bValue = b.job_stage;
+                    break;
+                  default:
+                    aValue = a.date_submitted;
+                    bValue = b.date_submitted;
+                }
+
+                // Handle null/undefined values - push them to the end
+                if (!aValue && !bValue) return 0;
+                if (!aValue) return 1;
+                if (!bValue) return -1;
+
+                // For dates, parse and compare as Date objects
+                if (sortField === "date_submitted" || sortField === "date_completed") {
+                  const dateA = new Date(aValue).getTime();
+                  const dateB = new Date(bValue).getTime();
+                  return sortDirection === "asc" ? dateA - dateB : dateB - dateA;
+                }
+
+                // For strings, compare lexicographically
+                const comparison = aValue.localeCompare(bValue);
+                return sortDirection === "asc" ? comparison : -comparison;
+              });
+
               if (jobs.length === 0) {
+                if (jobsLoading) {
+                  return (
+                    <div className="space-y-4">
+                      {[1, 2, 3].map((i) => (
+                        <div key={i} className="card bg-base-100 shadow-xl">
+                          <div className="card-body">
+                            <div className="flex justify-between items-start gap-4">
+                              <div className="flex-1 space-y-3">
+                                <div className="skeleton h-6 w-64"></div>
+                                <div className="space-y-2">
+                                  <div className="skeleton h-4 w-40"></div>
+                                  <div className="skeleton h-4 w-32"></div>
+                                  <div className="skeleton h-4 w-48"></div>
+                                  <div className="skeleton h-4 w-44"></div>
+                                </div>
+                                <div className="skeleton h-3 w-full max-w-xl"></div>
+                              </div>
+                              <div className="skeleton h-8 w-32"></div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                      <div className="text-center py-4">
+                        <div className="flex items-center justify-center gap-3">
+                          <span className="loading loading-spinner loading-md"></span>
+                          <p className="text-base-content/70">Loading jobs...</p>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                }
                 return (
                   <div className="card bg-base-100 shadow-xl">
                     <div className="card-body text-center">
@@ -582,7 +708,7 @@ export default function Home() {
                 );
               }
 
-              if (filteredJobs.length === 0) {
+              if (sortedJobs.length === 0) {
                 return (
                   <div className="card bg-base-100 shadow-xl">
                     <div className="card-body text-center">
@@ -603,26 +729,85 @@ export default function Home() {
                   {searchQuery && (
                     <div className="alert alert-info mb-4">
                       <span>
-                        Showing {filteredJobs.length} of {jobs.length} jobs
+                        Showing {sortedJobs.length} of {jobs.length} jobs
                       </span>
                     </div>
                   )}
+                  {jobsLoading && (
+                    <div className="alert alert-info mb-4">
+                      <div className="flex items-center gap-3">
+                        <span className="loading loading-spinner loading-sm"></span>
+                        <span>Refreshing jobs...</span>
+                      </div>
+                    </div>
+                  )}
                   <div className="space-y-4">
-                    {filteredJobs.map((job) => (
+                    {sortedJobs.map((job) => (
                       <div key={job.url} className="card bg-base-100 shadow-xl">
                         <div className="card-body">
-                          <div className="flex justify-between items-center">
-                            <div>
-                              <h3 className="card-title text-base">
-                                Job ID: {job.job_id}
-                              </h3>
-                              <p className="text-sm opacity-70 mt-1">
+                          <div className="flex justify-between items-start gap-4">
+                            <div className="flex-1 space-y-3">
+                              <div className="flex items-center gap-3">
+                                <h3 className="font-semibold text-lg">
+                                  {job.job_id}
+                                </h3>
+                                {job.failed && (
+                                  <span className="badge badge-error badge-sm">
+                                    FAILED
+                                  </span>
+                                )}
+                              </div>
+
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2 text-sm">
+                                {job.tool && (
+                                  <div className="flex gap-2">
+                                    <span className="text-base-content/60 font-medium min-w-[80px]">
+                                      Tool:
+                                    </span>
+                                    <span className="text-base-content font-mono">
+                                      {job.tool}
+                                    </span>
+                                  </div>
+                                )}
+                                {job.job_stage && (
+                                  <div className="flex gap-2">
+                                    <span className="text-base-content/60 font-medium min-w-[80px]">
+                                      Stage:
+                                    </span>
+                                    <span className="text-base-content">
+                                      {job.job_stage}
+                                    </span>
+                                  </div>
+                                )}
+                                {job.date_submitted && (
+                                  <div className="flex gap-2">
+                                    <span className="text-base-content/60 font-medium min-w-[80px]">
+                                      Submitted:
+                                    </span>
+                                    <span className="text-base-content">
+                                      {new Date(job.date_submitted).toLocaleString()}
+                                    </span>
+                                  </div>
+                                )}
+                                {job.date_completed && (
+                                  <div className="flex gap-2">
+                                    <span className="text-base-content/60 font-medium min-w-[80px]">
+                                      Completed:
+                                    </span>
+                                    <span className="text-base-content">
+                                      {new Date(job.date_completed).toLocaleString()}
+                                    </span>
+                                  </div>
+                                )}
+                              </div>
+
+                              <p className="text-xs opacity-50 font-mono mt-1">
                                 {job.url}
                               </p>
                             </div>
                             <button
                               onClick={() => handleDownload(job.url)}
-                              className="btn btn-success btn-sm"
+                              className="btn btn-success btn-sm whitespace-nowrap"
                             >
                               Download Results
                             </button>

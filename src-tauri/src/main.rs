@@ -22,6 +22,11 @@ struct AppState {
 struct JobSummary {
     job_id: String,
     url: String,
+    tool: Option<String>,
+    job_stage: Option<String>,
+    failed: bool,
+    date_submitted: Option<String>,
+    date_completed: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -168,6 +173,11 @@ async fn list_jobs(state: State<'_, AppState>) -> Result<Vec<JobSummary>, String
         .map(|j| JobSummary {
             job_id: anonymize_job_id(&j.job_id),
             url: anonymize_url(&j.url),
+            tool: j.tool,
+            job_stage: j.job_stage,
+            failed: j.failed,
+            date_submitted: j.date_submitted,
+            date_completed: j.date_completed,
         })
         .collect())
 }
