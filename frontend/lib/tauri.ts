@@ -115,6 +115,23 @@ export async function getShowcaseMode(): Promise<boolean> {
   return await invoke<boolean>('get_showcase_mode');
 }
 
+// Auto-refresh functions
+export async function getAutoRefresh(): Promise<boolean> {
+  return await invoke<boolean>('get_auto_refresh');
+}
+
+export async function setAutoRefresh(enabled: boolean): Promise<void> {
+  return await invoke<void>('set_auto_refresh', { enabled });
+}
+
+export async function getAutoRefreshInterval(): Promise<number> {
+  return await invoke<number>('get_auto_refresh_interval');
+}
+
+export async function setAutoRefreshInterval(interval: number): Promise<void> {
+  return await invoke<void>('set_auto_refresh_interval', { interval });
+}
+
 // Updater functions
 export interface UpdateInfo {
   version: string;

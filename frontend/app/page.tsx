@@ -22,6 +22,12 @@ export default function Home() {
     "job_id" | "tool" | "date_submitted" | "date_completed" | "job_stage"
   >("date_submitted");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [selectedJobUrl, setSelectedJobUrl] = useState<string | null>(null);
+  const [jobDetails, setJobDetails] = useState<api.JobDetails | null>(null);
+  const [jobDetailsLoading, setJobDetailsLoading] = useState(false);
+  const [autoRefresh, setAutoRefresh] = useState(false);
+  const [autoRefreshInterval, setAutoRefreshInterval] = useState(30);
 
   // Upload state
   const [selectedFile, setSelectedFile] = useState<string | null>(null);
@@ -124,6 +130,21 @@ export default function Home() {
     loadTheme();
   }, []);
 
+  // Load auto-refresh settings
+  useEffect(() => {
+    const loadAutoRefreshSettings = async () => {
+      try {
+        const enabled = await api.getAutoRefresh();
+        const interval = await api.getAutoRefreshInterval();
+        setAutoRefresh(enabled);
+        setAutoRefreshInterval(interval);
+      } catch (err) {
+        console.error("Failed to load auto-refresh settings:", err);
+      }
+    };
+    loadAutoRefreshSettings();
+  }, []);
+
   // Listen for system theme changes
   useEffect(() => {
     if (theme !== "system") return;
@@ -169,6 +190,17 @@ export default function Home() {
       if (cleanup) cleanup();
     };
   }, []);
+
+  // Auto-refresh jobs
+  useEffect(() => {
+    if (!autoRefresh || !isConnected) return;
+
+    const interval = setInterval(() => {
+      refreshJobs();
+    }, autoRefreshInterval * 1000);
+
+    return () => clearInterval(interval);
+  }, [autoRefresh, autoRefreshInterval, isConnected]);
 
   // Apply theme to document
   const applyTheme = (themeValue: "light" | "dark" | "system") => {
@@ -403,6 +435,43 @@ export default function Home() {
     }
   };
 
+  const handleViewJobDetails = async (jobUrl: string) => {
+    setSelectedJobUrl(jobUrl);
+    setJobDetailsLoading(true);
+    try {
+      const details = await api.getJobStatus(jobUrl);
+      setJobDetails(details);
+    } catch (err: any) {
+      showToast(`Failed to load job details: ${err}`, "error");
+      setSelectedJobUrl(null);
+    } finally {
+      setJobDetailsLoading(false);
+    }
+  };
+
+  const closeJobDetailsModal = () => {
+    setSelectedJobUrl(null);
+    setJobDetails(null);
+  };
+
+  const handleAutoRefreshToggle = async (enabled: boolean) => {
+    setAutoRefresh(enabled);
+    try {
+      await api.setAutoRefresh(enabled);
+    } catch (err) {
+      console.error("Failed to save auto-refresh setting:", err);
+    }
+  };
+
+  const handleAutoRefreshIntervalChange = async (interval: number) => {
+    setAutoRefreshInterval(interval);
+    try {
+      await api.setAutoRefreshInterval(interval);
+    } catch (err) {
+      console.error("Failed to save auto-refresh interval:", err);
+    }
+  };
+
   if (!isConnected) {
     return (
       <div className="min-h-screen bg-base-200 flex items-center justify-center p-4">
@@ -567,47 +636,126 @@ export default function Home() {
               </button>
             </div>
 
-            {/* Sort Controls */}
-            <div className="flex flex-wrap gap-4 mb-4 items-center">
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-semibold">Sort by:</span>
-                <select
-                  value={sortField}
-                  onChange={(e) =>
-                    setSortField(
-                      e.target.value as
-                        | "job_id"
-                        | "tool"
-                        | "date_submitted"
-                        | "date_completed"
-                        | "job_stage"
-                    )
-                  }
-                  className="select select-bordered select-sm"
-                >
-                  <option value="date_submitted">Date Submitted</option>
-                  <option value="date_completed">Date Completed</option>
-                  <option value="job_id">Job ID</option>
-                  <option value="tool">Tool</option>
-                  <option value="job_stage">Job Stage</option>
-                </select>
+            {/* Status Filter & Controls */}
+            <div className="flex flex-col gap-4 mb-4">
+              {/* Status Filters */}
+              <div className="flex flex-wrap gap-2 items-center">
+                <span className="text-sm font-semibold mr-2">Filter:</span>
+                <div className="btn-group">
+                  <button
+                    onClick={() => setStatusFilter("all")}
+                    className={`btn btn-sm ${statusFilter === "all" ? "btn-active" : "btn-ghost"}`}
+                  >
+                    All
+                  </button>
+                  <button
+                    onClick={() => setStatusFilter("COMPLETED")}
+                    className={`btn btn-sm ${statusFilter === "COMPLETED" ? "btn-active" : "btn-ghost"}`}
+                  >
+                    Completed
+                  </button>
+                  <button
+                    onClick={() => setStatusFilter("QUEUE")}
+                    className={`btn btn-sm ${statusFilter === "QUEUE" ? "btn-active" : "btn-ghost"}`}
+                  >
+                    Queue
+                  </button>
+                  <button
+                    onClick={() => setStatusFilter("RUNNING")}
+                    className={`btn btn-sm ${statusFilter === "RUNNING" ? "btn-active" : "btn-ghost"}`}
+                  >
+                    Running
+                  </button>
+                  <button
+                    onClick={() => setStatusFilter("failed")}
+                    className={`btn btn-sm ${statusFilter === "failed" ? "btn-active btn-error" : "btn-ghost"}`}
+                  >
+                    Failed
+                  </button>
+                </div>
               </div>
-              <button
-                onClick={() =>
-                  setSortDirection(sortDirection === "asc" ? "desc" : "asc")
-                }
-                className="btn btn-sm btn-ghost gap-2"
-                title={`Sort ${sortDirection === "asc" ? "Descending" : "Ascending"}`}
-              >
-                {sortDirection === "asc" ? "↑" : "↓"}
-                <span className="hidden sm:inline">
-                  {sortDirection === "asc" ? "Ascending" : "Descending"}
-                </span>
-              </button>
+
+              {/* Sort & Auto-refresh Controls */}
+              <div className="flex flex-wrap gap-4 items-center">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-semibold">Sort by:</span>
+                  <select
+                    value={sortField}
+                    onChange={(e) =>
+                      setSortField(
+                        e.target.value as
+                          | "job_id"
+                          | "tool"
+                          | "date_submitted"
+                          | "date_completed"
+                          | "job_stage"
+                      )
+                    }
+                    className="select select-bordered select-sm"
+                  >
+                    <option value="date_submitted">Date Submitted</option>
+                    <option value="date_completed">Date Completed</option>
+                    <option value="job_id">Job ID</option>
+                    <option value="tool">Tool</option>
+                    <option value="job_stage">Job Stage</option>
+                  </select>
+                </div>
+                <button
+                  onClick={() =>
+                    setSortDirection(sortDirection === "asc" ? "desc" : "asc")
+                  }
+                  className="btn btn-sm btn-ghost gap-2"
+                  title={`Sort ${sortDirection === "asc" ? "Descending" : "Ascending"}`}
+                >
+                  {sortDirection === "asc" ? "↑" : "↓"}
+                  <span className="hidden sm:inline">
+                    {sortDirection === "asc" ? "Ascending" : "Descending"}
+                  </span>
+                </button>
+
+                <div className="divider divider-horizontal hidden sm:flex"></div>
+
+                {/* Auto-refresh Toggle */}
+                <div className="flex items-center gap-2">
+                  <label className="label cursor-pointer gap-2">
+                    <span className="label-text text-sm font-semibold">
+                      Auto-refresh:
+                    </span>
+                    <input
+                      type="checkbox"
+                      className="toggle toggle-sm"
+                      checked={autoRefresh}
+                      onChange={(e) => handleAutoRefreshToggle(e.target.checked)}
+                    />
+                  </label>
+                  {autoRefresh && (
+                    <select
+                      value={autoRefreshInterval}
+                      onChange={(e) => handleAutoRefreshIntervalChange(Number(e.target.value))}
+                      className="select select-bordered select-sm w-20"
+                    >
+                      <option value="15">15s</option>
+                      <option value="30">30s</option>
+                      <option value="60">60s</option>
+                      <option value="120">2m</option>
+                    </select>
+                  )}
+                </div>
+              </div>
             </div>
 
             {(() => {
               const filteredJobs = jobs.filter((job) => {
+                // Apply status filter
+                if (statusFilter !== "all") {
+                  if (statusFilter === "failed") {
+                    if (!job.failed) return false;
+                  } else {
+                    if (!job.job_stage || job.job_stage !== statusFilter) return false;
+                  }
+                }
+
+                // Apply search filter
                 const query = searchQuery.toLowerCase();
                 return (
                   job.job_id.toLowerCase().includes(query) ||
@@ -805,12 +953,20 @@ export default function Home() {
                                 {job.url}
                               </p>
                             </div>
-                            <button
-                              onClick={() => handleDownload(job.url)}
-                              className="btn btn-success btn-sm whitespace-nowrap"
-                            >
-                              Download Results
-                            </button>
+                            <div className="flex flex-col gap-2">
+                              <button
+                                onClick={() => handleViewJobDetails(job.url)}
+                                className="btn btn-info btn-sm whitespace-nowrap"
+                              >
+                                View Details
+                              </button>
+                              <button
+                                onClick={() => handleDownload(job.url)}
+                                className="btn btn-success btn-sm whitespace-nowrap"
+                              >
+                                Download Results
+                              </button>
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -1226,6 +1382,113 @@ export default function Home() {
               </div>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Job Details Modal */}
+      {selectedJobUrl && (
+        <div className="modal modal-open">
+          <div className="modal-box max-w-3xl">
+            <div className="flex justify-between items-start mb-4">
+              <h3 className="font-bold text-lg">Job Details</h3>
+              <button
+                onClick={closeJobDetailsModal}
+                className="btn btn-sm btn-circle btn-ghost"
+              >
+                ✕
+              </button>
+            </div>
+
+            {jobDetailsLoading ? (
+              <div className="flex flex-col items-center justify-center py-12 gap-4">
+                <span className="loading loading-spinner loading-lg"></span>
+                <p className="text-base-content/70">Loading job details...</p>
+              </div>
+            ) : jobDetails ? (
+              <div className="space-y-4">
+                {/* Job Status Overview */}
+                <div className="card bg-base-200">
+                  <div className="card-body">
+                    <h4 className="font-semibold mb-3">Status</h4>
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                      <div>
+                        <span className="text-base-content/60 font-medium">Job ID:</span>
+                        <p className="font-mono mt-1">{jobDetails.job_id}</p>
+                      </div>
+                      <div>
+                        <span className="text-base-content/60 font-medium">Stage:</span>
+                        <p className="mt-1 flex items-center gap-2">
+                          {jobDetails.job_stage}
+                          {jobDetails.failed && (
+                            <span className="badge badge-error badge-sm">FAILED</span>
+                          )}
+                        </p>
+                      </div>
+                      {jobDetails.date_submitted && (
+                        <div>
+                          <span className="text-base-content/60 font-medium">Submitted:</span>
+                          <p className="mt-1">
+                            {new Date(jobDetails.date_submitted).toLocaleString()}
+                          </p>
+                        </div>
+                      )}
+                      {jobDetails.results_uri && (
+                        <div>
+                          <span className="text-base-content/60 font-medium">Results:</span>
+                          <p className="mt-1 text-success">Available</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* URLs */}
+                <div className="card bg-base-200">
+                  <div className="card-body">
+                    <h4 className="font-semibold mb-3">URLs</h4>
+                    <div className="space-y-2 text-sm">
+                      <div>
+                        <span className="text-base-content/60 font-medium">Job URL:</span>
+                        <p className="font-mono text-xs mt-1 break-all">{jobDetails.self_uri}</p>
+                      </div>
+                      {jobDetails.results_uri && (
+                        <div>
+                          <span className="text-base-content/60 font-medium">Results URL:</span>
+                          <p className="font-mono text-xs mt-1 break-all">
+                            {jobDetails.results_uri}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex gap-2 justify-end">
+                  <button
+                    onClick={closeJobDetailsModal}
+                    className="btn btn-ghost"
+                  >
+                    Close
+                  </button>
+                  <button
+                    onClick={() => {
+                      handleDownload(selectedJobUrl);
+                      closeJobDetailsModal();
+                    }}
+                    className="btn btn-success"
+                  >
+                    Download Results
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <p className="text-error">Failed to load job details</p>
+              </div>
+            )}
+          </div>
+          <div className="modal-backdrop" onClick={closeJobDetailsModal}></div>
         </div>
       )}
     </div>

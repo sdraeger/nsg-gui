@@ -502,6 +502,62 @@ fn get_showcase_mode() -> bool {
     is_showcase_mode()
 }
 
+#[tauri::command]
+async fn get_auto_refresh(app: tauri::AppHandle) -> Result<bool, String> {
+    let store = app
+        .store("preferences.json")
+        .map_err(|e| format!("Failed to access store: {}", e))?;
+
+    let auto_refresh = store
+        .get("auto_refresh")
+        .and_then(|v| v.as_bool())
+        .unwrap_or(false);
+
+    Ok(auto_refresh)
+}
+
+#[tauri::command]
+async fn set_auto_refresh(app: tauri::AppHandle, enabled: bool) -> Result<(), String> {
+    let store = app
+        .store("preferences.json")
+        .map_err(|e| format!("Failed to access store: {}", e))?;
+
+    store.set("auto_refresh", json!(enabled));
+    store
+        .save()
+        .map_err(|e| format!("Failed to save store: {}", e))?;
+
+    Ok(())
+}
+
+#[tauri::command]
+async fn get_auto_refresh_interval(app: tauri::AppHandle) -> Result<u64, String> {
+    let store = app
+        .store("preferences.json")
+        .map_err(|e| format!("Failed to access store: {}", e))?;
+
+    let interval = store
+        .get("auto_refresh_interval")
+        .and_then(|v| v.as_u64())
+        .unwrap_or(30);
+
+    Ok(interval)
+}
+
+#[tauri::command]
+async fn set_auto_refresh_interval(app: tauri::AppHandle, interval: u64) -> Result<(), String> {
+    let store = app
+        .store("preferences.json")
+        .map_err(|e| format!("Failed to access store: {}", e))?;
+
+    store.set("auto_refresh_interval", json!(interval));
+    store
+        .save()
+        .map_err(|e| format!("Failed to save store: {}", e))?;
+
+    Ok(())
+}
+
 fn main() {
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
@@ -529,6 +585,10 @@ fn main() {
             get_theme,
             set_theme,
             get_showcase_mode,
+            get_auto_refresh,
+            set_auto_refresh,
+            get_auto_refresh_interval,
+            set_auto_refresh_interval,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
